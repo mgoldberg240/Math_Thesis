@@ -6,9 +6,10 @@
 
 % Check analytic solution using MAPLE or by hand
 % Compare to see if you get the same as Heat.pdf
-MyU = diffusion(10,30,1,30);
+MyU = diffusion(30,30,1,1);
 
 function U = diffusion(nx,nt,xf,tf)
+close all
 clc
 if nargin < 1, nx = 10; end
 if nargin < 2, nt = 30; end
@@ -19,45 +20,61 @@ fprintf('nx = %f \n',nx)
 fprintf('nt = %f \n',nt)
 
 x0 = 0;
-% xf = 1;
-x = linspace(x0,xf,nx);
-h = xf/(nx-1);
+x_vec = linspace(x0,xf,nx);
+h = xf/nx;
 
 t0 = 0;
-% tf = 15; % end time
-t = linspace(t0,tf,nt);
-dt = tf/(nt-1);
-u0 = 4*x.*(1-x);%2-1.5.*x+sin(pi*x); % sin(pi*x);
+t_vec = linspace(t0,tf,nt);
+dt = tf/nt;
+u0 = sin(pi*x_vec)+sin(2*pi*x_vec);
 
 
-a = 1;%pi^-2; % thermal diffusivity constant
-r = a*dt/(nx^2);
+a = pi^-2; % thermal diffusivity constant
+r = a*dt/(2*(h^2));
 
-MyL = -r*ones(1,nx); MyL(1) = 0;
-MyD = (2*r+1)*ones(1,nx); MyD(1) = 1; MyD(end) = 1;
-MyU = -r*ones(1,nx); MyU(end) = 0;
-u = tridiag_solve(MyL,MyD,MyU,u0); % calculate u1 from u0
+MyLower = -r*ones(1,nx); MyLower(1) = 0;
+MyDiag = (2*r+1)*ones(1,nx); MyDiag(1) = 1; MyDiag(end) = 1;
+MyUpper = -r*ones(1,nx); MyUpper(end) = 0;
 
+U(:,1) = u0; 
 
-U(1,:) = u; 
-StoreU = U;
-for n = 2:nt
-%     W1 = -[0 MyL(2:end-1).*U(1:end-2) 0];
-%     W2 = [0 2*(1-MyL(2:end-1)).*U(2:end-1) 0];
-%     W3 = - [0 MyU(2:end-1).*U(3:end) 0];
-%     W = W1+W2+W3;
-%     MyD(1) = g0; MyD(end) = g1;
-    U = tridiag_solve(MyL,MyD,MyU,U);
-    
-    StoreU(n,:) = U;
+for t = 2:nt
+    W1 = -[0 MyLower(2:end-1).*U(1:end-2,t-1)' 0];
+    W2 = [0 MyDiag(2:end-1).*U(2:end-1,t-1)' 0];
+    W3 = -[0 MyUpper(2:end-1).*U(3:end,t-1)' 0];
+    W = W1+W2+W3;
+
+    U(:,t) = tridiag_solve(MyLower,MyDiag,MyUpper,W)
+    % U(:,t) = tridiag_solve(MyLower,MyDiag,MyUpper,U(:,t-1));
 end
 
-[X,T] = meshgrid(x,t);
-figure
+% theoretical U
+actual_U = (exp(t_vec)).*sin(pi*x_vec)' + (exp(-4*t_vec)).*sin(2*pi*x_vec)';
+size(actual_U)
+size(U)
+[X,T] = meshgrid(x_vec,t_vec);
+
+figure(1)
 clf
 colormap(jet)
-contourf(X,T,StoreU,'LineStyle','none');
+contourf(X,T,U','LineStyle','none');
 xlabel('x'),ylabel('t'),title('1D Diffusion using Crank-Nicholson Method')
 %[C,H] = contourf(X,T,StoreU);
 colorbar
+
+figure(2)
+clf
+colormap(jet)
+contourf(X,T,actual_U','LineStyle','none');
+xlabel('x'),ylabel('t'),title('1D Diffusion using Crank-Nicholson Method')
+%[C,H] = contourf(X,T,StoreU);
+colorbar
+
+% error plot
+figure(3)
+clf
+error_U = max(abs(U-actual_U));
+plot(t_vec,error_U)
+xlabel('x'),ylabel('time'),title('Max U error versus time')
+
 end
