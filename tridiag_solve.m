@@ -1,6 +1,7 @@
 % Created by Matt Goldberg on Jan 20th 2018
 % solve a tridiagonal linear system Ax = f for vector x
 % A = tridiag(l,d,u); where l = [0 l2 ... ln], u = [u1 u2 ... u_n-1 0]
+% x = tridiag_solve(l,d,u,f)
 % Algorithm 2.6 from Epperson Numerical Analysis textbook (p. 80)
 function x = tridiag_solve(l,d,u,f)
 % --- Elimination stage
