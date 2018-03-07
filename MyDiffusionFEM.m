@@ -1,17 +1,27 @@
 % This code was created by Matt Goldberg on Jan 12 2018
-% Last updated Mar 6 2018
-% Goal: Model the Diffusion Equations using the Finite Element method as presented
-% By Epperson in "An Introduction to Numerical Methods and Analysis"
-% Similar to Crank Nicholson method (MyDiffusionCN)
+% Goal: Model the Diffusion Equations using the Crank-Nicolson method as presented
+% By Epperson in "An Introduction to Numerical Methods and Analysis" (ch
+% 9.1.3)
 
+
+% Check analytic solution using MAPLE or by hand
+% Compare to see if you get the same as Heat.pdf
+% MyU = diffusion(128,128,1,1);
 n = 128;
 u_init = @(x) sin(pi*x);
 func_U = @(x,t)(exp((-pi^2)*t)).*sin(pi*x);
-diffusionFEM(n,n,1,1,0.3,u_init,func_U)
+diffusionFEM(n,n,0.01,1,1,u_init,func_U)
 
 function [] = diffusionFEM(nt,nx,a,xmax,tmax,u_init,func_U)
 % close all
 clc
+if nargin < 1, nx = 32; end
+if nargin < 2, nt = 32; end
+if nargin < 3, xmax = 1; end
+if nargin < 4, tmax = 1; end
+
+% fprintf('nx = %f \n',nx)
+% fprintf('nt = %f \n',nt)
 
 % --- x grid
 x0 = 0;
@@ -22,29 +32,32 @@ t0 = 0;
 t_vec = linspace(t0,tmax,nt);
 dt = tmax/(nt-1);
 
-% recursion constants
-% a = alpha = thermal diffusivity constant 
+%a = pi^-2; % thermal diffusivity constant
 
-% --- coefficient in tridiag system
-r = a*dt/(2*(h^2));
+% --- recursion coefficients in tridiag system
+r = a*dt/2;
+q = h/6;
+s = r/h;
 
-LHS_Lower = -r*ones(nx,1); LHS_Lower(end) = 0;
-LHS_Diag = (2*r+1)*ones(nx,1); LHS_Diag(1) = 1; LHS_Diag(end) = 1;
-LHS_Upper = -r*ones(nx,1); LHS_Upper(1) = 0;
+
+LHS_Lower = (q-s)*ones(nx,1); LHS_Lower(end) = 0;
+LHS_Diag = (4*q+2*s)*ones(nx,1); LHS_Diag(1) = 1; LHS_Diag(end) = 1;
+LHS_Upper = (q-s)*ones(nx,1); LHS_Upper(1) = 0;
 
 
 % --- u0 
 U(:,1) = u_init(x_vec); 
-k = (1-2*r)/(2*r+1);
+k1 = (q+s)/(q-s);
+k2 = (4*q-2*s)/(4*q+2*s);
 
 for t = 2:nt
     % current U_n
     Un = U(:,t-1);
     
     % construct Right Hand Side vector corresponding to t_n
-    RHS_Lower = [0; -LHS_Lower(2:end-1).*Un(1:end-2); 0];
-    RHS_Diag = [0; k*LHS_Diag(2:end-1).*Un(2:end-1); 0];
-    RHS_Upper = [0; -LHS_Lower(2:end-1).*Un(3:end); 0];
+    RHS_Lower = [0; k1*LHS_Lower(2:end-1).*Un(1:end-2); 0];
+    RHS_Diag = [0; k2*LHS_Diag(2:end-1).*Un(2:end-1); 0];
+    RHS_Upper = [0; k1*LHS_Lower(2:end-1).*Un(3:end); 0];
     RHS = (RHS_Lower+RHS_Diag+RHS_Upper);
     
     % set boundary conditions
