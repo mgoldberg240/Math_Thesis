@@ -10,7 +10,7 @@
 n = 128;
 u_init = @(x) sin(pi*x);
 func_U = @(x,t)(exp((-pi^2)*t)).*sin(pi*x);
-diffusionFEM(n,n,0.01,1,1,u_init,func_U)
+diffusionFEM(n,n,1,1,1,u_init,func_U)
 
 function [] = diffusionFEM(nt,nx,a,xmax,tmax,u_init,func_U)
 % close all

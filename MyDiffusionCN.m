@@ -4,12 +4,12 @@
 % By Epperson in "An Introduction to Numerical Methods and Analysis"
 % Similar to Crank Nicholson method (MyDiffusionCN)
 
-n = 128;
-u_init = @(x) sin(pi*x);
-func_U = @(x,t)(exp((-pi^2)*t)).*sin(pi*x);
-diffusionFEM(n,n,1,1,0.3,u_init,func_U)
+% n = 128;
+% u_init = @(x) sin(pi*x);
+% func_U = @(x,t)(exp((-pi^2)*t)).*sin(pi*x);
+% diffusionCN(n,n,1,1,0.3,u_init,func_U)
 
-function [] = diffusionFEM(nt,nx,a,xmax,tmax,u_init,func_U)
+function [U,actual_U,E,X,T] = MyDiffusionCN(nt,nx,a,xmax,tmax,u_init,func_U);
 % close all
 clc
 
@@ -53,35 +53,35 @@ for t = 2:nt
     %Solve for U_n+1
     U(:,t) = tridiag_solve(LHS_Lower,LHS_Diag,LHS_Upper,RHS);
 end
+U = U';
 
 % theoretical U
 actual_U = func_U(x_vec,t_vec);
-size(actual_U)
-size(U)
 [X,T] = meshgrid(x_vec,t_vec);
-
-% Calculated U
-figure(1)
-clf
-colormap(jet)
-contourf(X,T,U','LineStyle','none');
-xlabel('x'),ylabel('t'),title('1D Diffusion using Crank-Nicholson Method')
-colorbar
-
-% Theoretical (actual) U
-figure(2)
-clf
-colormap(jet)
-contourf(X,T,actual_U','LineStyle','none');
-xlabel('x'),ylabel('t'),title('Theoretical U')
-%[C,H] = contourf(X,T,StoreU);
-colorbar
-
-% error plot
-figure(3)
-clf
-error_U = max(abs(U-actual_U));
-plot(t_vec,error_U)
-xlabel('x'),ylabel('time'),title('Max U error versus time')
+E = max(abs(U'-actual_U)); % error
+% 
+% % Calculated U
+% figure(1)
+% clf
+% colormap(jet)
+% AC = contourf(X,T,U,'LineStyle','none');
+% xlabel('x'),ylabel('t'),title('1D Diffusion using Crank-Nicholson Method')
+% colorbar
+% 
+% % Theoretical (actual) U
+% figure(2)
+% clf
+% colormap(jet)
+% TC = contourf(X,T,actual_U','LineStyle','none');
+% xlabel('x'),ylabel('t'),title('Theoretical U')
+% %[C,H] = contourf(X,T,StoreU);
+% colorbar
+% 
+% % error plot
+% figure(3)
+% clf
+% E = max(abs(U'-actual_U)); % error
+% plot(t_vec,E)
+% xlabel('x'),ylabel('time'),title('Max U error versus time')
 
 end
