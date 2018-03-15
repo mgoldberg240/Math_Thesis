@@ -59,7 +59,7 @@ U = U';
 actual_U = func_U(x_vec,t_vec);
 [X,T] = meshgrid(x_vec,t_vec);
 E = max(abs(U'-actual_U)); % error
-% 
+
 % % Calculated U
 % figure(1)
 % clf
