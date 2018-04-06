@@ -2,16 +2,18 @@
 % Last updated Mar 6 2018
 % Goal: Model the Diffusion Equations using the Finite Element method as presented
 % By Epperson in "An Introduction to Numerical Methods and Analysis"
-% Similar to Crank Nicholson method (MyDiffusionCN)
+% Similar to Crank Nicolson method (MyDiffusionCN)
 
-% n = 128;
-% u_init = @(x) sin(pi*x);
-% % func_U = @(x,t)(exp((-pi^2)*t)).*sin(pi*x);
-% % diffusionCN(n,n,1,1,0.3,u_init,func_U)
+% 
+% n = 33;
+% u_init = @(x) sin(pi*x)+sin(2*pi*x);
+% func_U = @(x,t)(exp(-t)).*sin(pi*x) + (exp(-4*t)).*sin(2*pi*x);
+% [U_CN,actual_U,E,X,T,z] = diffusionCN(n,n,pi^-2,1,1,u_init,func_U)
+% function [U,actual_U,E,X,T,z] = diffusionCN(nt,nx,a,xmax,tmax,u_init,func_U)
 
 function [U,actual_U,E,X,T] = MyDiffusionCN(nt,nx,a,xmax,tmax,u_init,func_U)
 % close all
-clc
+
 
 % --- x grid
 x0 = 0;
@@ -47,6 +49,10 @@ for t = 2:nt
     RHS_Upper = [0; -LHS_Lower(2:end-1).*Un(3:end); 0];
     RHS = (RHS_Lower+RHS_Diag+RHS_Upper);
     
+    if t == 2
+        z = RHS;
+    end
+    
     % set boundary conditions
     RHS(1) = 0; RHS(end) = 0;
 
@@ -59,6 +65,12 @@ U = U';
 actual_U = func_U(x_vec,t_vec);
 [X,T] = meshgrid(x_vec,t_vec);
 E = max(abs(U'-actual_U)); % error
+
+% figure
+% clf
+% hold on
+% plot(t_vec,E)
+
 
 % % Calculated U
 % figure(1)

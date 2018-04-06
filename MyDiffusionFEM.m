@@ -1,4 +1,5 @@
 % This code was created by Matt Goldberg on Jan 12 2018
+% Last updated Apr 2 2018
 % Goal: Model the Diffusion Equations using the Crank-Nicolson method as presented
 % By Epperson in "An Introduction to Numerical Methods and Analysis" (ch
 % 9.1.3)
@@ -7,17 +8,20 @@
 % Check analytic solution using MAPLE or by hand
 % Compare to see if you get the same as Heat.pdf
 % 
+% n = 33;
 % u_init = @(x) sin(pi*x)+sin(2*pi*x);
 % func_U = @(x,t)(exp(-t)).*sin(pi*x) + (exp(-4*t)).*sin(2*pi*x);
-% [U_FEM,E_FEM] = DiffusionFEM(32,32,pi^-2,1,1,u_init,func_U);
+% [U_FEM,E_FEM] = DiffusionFEM(n,n,pi^-2,1,1,u_init,func_U);
 
-function [U,E] = DiffusionFEM(nt,nx,a,xmax,tmax,u_init,func_U)
+%function [U,E] = DiffusionFEM(nt,nx,a,xmax,tmax,u_init,func_U)
+
+function [U,E] = MyDiffusionFEM(nt,nx,a,xmax,tmax,u_init,func_U)
 % close all
-clc
-if nargin < 1, nx = 32; end
-if nargin < 2, nt = 32; end
-if nargin < 3, xmax = 1; end
-if nargin < 4, tmax = 1; end
+
+% if nargin < 1, nx = 32; end
+% if nargin < 2, nt = 32; end
+% if nargin < 3, xmax = 1; end
+% if nargin < 4, tmax = 1; end
 
 % fprintf('nx = %f \n',nx)
 % fprintf('nt = %f \n',nt)
@@ -65,12 +69,18 @@ for t = 2:nt
     %Solve for U_n+1
     U(:,t) = tridiag_solve(LHS_Lower,LHS_Diag,LHS_Upper,RHS);
 end
-U = U'
+U = U';
 % theoretical U
 
 actual_U = func_U(x_vec,t_vec);
 [X,T] = meshgrid(x_vec,t_vec);
 E = max(abs(U'-actual_U)); % error
+
+% figure
+% clf
+% hold on
+% plot(t_vec,E)
+
 % figure
 % surf(X,T,U')
 % figure

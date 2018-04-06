@@ -1,7 +1,13 @@
 clc
 clear
 close all
+%% basic tents
+x = linspace(0,1,5);
+y = [0 1 0 1 0];
+figure; clf; hold on; axis([0 1.2 0 1.2])
+plot(x,y)
 
+%% Tents on u(x)
 % sketch function in question
 L = 1;
 x = linspace(0,L,1000);
